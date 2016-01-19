@@ -1,24 +1,26 @@
 var fs = require("fs");
 var webpage = require('webpage');
 var masterDone;
+var DELAY = 500;
 
 module.exports = scrapePage;
 
-
 function scrapePage(url, done, worker) {
   masterDone = done;
-  var page = webpage.create()
-  page.open(url, function(status) {
-    if (status !== "success") {
-      console.error("Unable to load page", status);
-      phantom.exit();
-    } else {
-      page.includeJs("https://code.jquery.com/jquery-2.2.0.min.js", pageLoaded(page));
-    }
-  });
-  page.onConsoleMessage = function(msg) {
-    console.log(msg);
-  };
+  setTimeout(function() {
+    var page = webpage.create()
+    page.open(url, function(status) {
+      if (status !== "success") {
+        console.error("Unable to load page", status);
+        phantom.exit();
+      } else {
+        page.includeJs("https://code.jquery.com/jquery-2.2.0.min.js", pageLoaded(page));
+      }
+    });
+    page.onConsoleMessage = function(msg) {
+      console.log(msg);
+    };
+  }, DELAY);
 }
 
 function pageLoaded(page) {
