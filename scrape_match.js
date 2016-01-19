@@ -1,32 +1,35 @@
-console.log("started");
 var fs = require("fs");
-var page = require('webpage').create();
+var webpage = require('webpage');
+var masterDone;
 
-page.onConsoleMessage = function(msg) {
-  console.log(msg);
-};
-//var url = "http://www.oddsportal.com/tennis/usa/atp-newport/ram-rajeev-karlovic-ivo-UNMhuSXM/";
-var url = "http://www.oddsportal.com/tennis/india/atp-chennai-2009/devvarman-somdev-schuettler-rainer-AmsAckNi/";
-page.open(url, function(status) {
-  if (status !== "success") {
-    console.error("Unable to load page", status);
+module.exports = scrapePage;
+
+
+function scrapePage(url, done, worker) {
+  masterDone = done;
+  var page = webpage.create()
+  page.open(url, function(status) {
+    if (status !== "success") {
+      console.error("Unable to load page", status);
+      phantom.exit();
+    } else {
+      page.includeJs("https://code.jquery.com/jquery-2.2.0.min.js", pageLoaded(page));
+    }
+  });
+  page.onConsoleMessage = function(msg) {
+    console.log(msg);
+  };
+}
+
+function pageLoaded(page) {
+  return function () {
+    var playerData = page.evaluate(getData);
+    if (!playerData) {
+      masterDone("Unable to parse page.");
+    }
+    masterDone(null, playerData);
     phantom.exit();
-  } else {
-    page.includeJs("https://code.jquery.com/jquery-2.2.0.min.js", pageLoaded);
   }
-});
-
-function pageLoaded() {
-  console.log("page loaded");
-  page.render("loaded.png");
-  var playerData = page.evaluate(getData);
-  //console.log("Rows:", numRows);
-  if (!playerData) {
-    phantom.exit(1);
-  }
-  fs.write("out.json", JSON.stringify(playerData), 'w');
-  console.log("Success");
-  phantom.exit();
 }
 
 function getData() {
@@ -85,7 +88,6 @@ function getData() {
       var result = result.split(':');
       var firstScore = parseInt(result[0]);
       var secondScore = parseInt(result[1]);
-      console.log("Score", firstScore, secondScore);
       player0Won = firstScore > secondScore;
     }
     return {
