@@ -37,6 +37,7 @@ function writeFile(matches) {
   var name = new Date().getTime() + "-" + filesWritten + (outFile || "out.json");
   console.log("Dumping to", name);
   fs.writeFileSync(name, JSON.stringify(allMatches));
+  allMatches = [];
   filesWritten++;
 }
 
